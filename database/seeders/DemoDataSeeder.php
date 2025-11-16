@@ -137,10 +137,8 @@ class DemoDataSeeder extends Seeder
             'inspection_type' => 'Annual Safety Inspection',
             'inspection_date' => now()->subMonths(2),
             'inspection_time' => '09:00:00',
-            'result' => 'pass',
-            'findings' => 'All safety checks passed. Equipment is in good condition.',
-            'recommendations' => 'Continue regular maintenance schedule.',
-            'next_inspection_date' => now()->addMonths(10),
+            'result' => 'Pass - All safety checks passed',
+            'notes' => 'Equipment is in good condition. Continue regular maintenance schedule.',
             'status' => 'completed',
         ]);
 
@@ -152,10 +150,8 @@ class DemoDataSeeder extends Seeder
             'inspection_type' => 'Preventive Maintenance',
             'inspection_date' => now()->subMonths(1),
             'inspection_time' => '14:30:00',
-            'result' => 'conditional',
-            'findings' => 'Minor oil leak detected in cooling system.',
-            'recommendations' => 'Replace cooling system seals within 30 days.',
-            'next_inspection_date' => now()->addMonths(3),
+            'result' => 'Conditional - Minor issues detected',
+            'notes' => 'Minor oil leak detected in cooling system. Replace cooling system seals within 30 days.',
             'status' => 'completed',
         ]);
 
@@ -167,7 +163,7 @@ class DemoDataSeeder extends Seeder
             'inspection_type' => 'Quarterly Inspection',
             'inspection_date' => now()->addDays(7),
             'inspection_time' => '10:00:00',
-            'result' => 'pending',
+            'result' => 'Pending',
             'status' => 'scheduled',
         ]);
 
@@ -229,10 +225,8 @@ class DemoDataSeeder extends Seeder
             'inspection_type' => 'Initial Inspection',
             'inspection_date' => now()->subDays(5),
             'inspection_time' => '11:00:00',
-            'result' => 'pass',
-            'findings' => 'New installation verified. All systems operational.',
-            'recommendations' => 'Schedule quarterly inspections.',
-            'next_inspection_date' => now()->addMonths(3),
+            'result' => 'Pass - New installation verified',
+            'notes' => 'All systems operational. Schedule quarterly inspections.',
             'status' => 'completed',
         ]);
     }
