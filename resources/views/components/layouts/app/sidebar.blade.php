@@ -21,9 +21,11 @@
                 </x-navlist.group>
 
                 <x-navlist.group :heading="__('Management')">
+                    @if(!auth()->user()->isTechnician())
                     <x-navlist.item before="phosphor-users" :href="route('customers.index')" :current="request()->routeIs('customers.*')">
                         {{ __('Customers') }}
                     </x-navlist.item>
+                    @endif
                     <x-navlist.item before="phosphor-wrench" :href="route('equipment.index')" :current="request()->routeIs('equipment.*')">
                         {{ __('Equipment') }}
                     </x-navlist.item>

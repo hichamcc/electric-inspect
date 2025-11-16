@@ -13,6 +13,11 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
+        // Only organization admins and super admins can access
+        if (auth()->user()->isTechnician()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $query = Customer::with('organization');
 
         // Search functionality
@@ -41,6 +46,11 @@ class CustomerController extends Controller
      */
     public function create()
     {
+        // Only organization admins and super admins can access
+        if (auth()->user()->isTechnician()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('customers.create');
     }
 
@@ -49,6 +59,11 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
+        // Only organization admins and super admins can access
+        if (auth()->user()->isTechnician()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'address' => 'nullable|string',
@@ -78,6 +93,11 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
+        // Only organization admins and super admins can access
+        if (auth()->user()->isTechnician()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $customer->load(['equipment', 'inspections']);
 
         return view('customers.show', compact('customer'));
@@ -88,6 +108,11 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
+        // Only organization admins and super admins can access
+        if (auth()->user()->isTechnician()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('customers.edit', compact('customer'));
     }
 
@@ -96,6 +121,11 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
+        // Only organization admins and super admins can access
+        if (auth()->user()->isTechnician()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'address' => 'nullable|string',
@@ -121,6 +151,11 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
+        // Only organization admins and super admins can access
+        if (auth()->user()->isTechnician()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $customer->delete();
 
         return redirect()->route('customers.index')
