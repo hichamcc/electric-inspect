@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Customer;
 use App\Models\Equipment;
 use App\Models\Inspection;
+use App\Models\Notification;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -228,6 +229,44 @@ class DemoDataSeeder extends Seeder
             'result' => 'Pass - New installation verified',
             'notes' => 'All systems operational. Schedule quarterly inspections.',
             'status' => 'completed',
+        ]);
+
+        // Create sample notifications
+        Notification::create([
+            'user_id' => $org1Admin->id,
+            'type' => 'inspection_upcoming',
+            'title' => 'Upcoming Inspection',
+            'message' => 'You have an inspection scheduled for ' . $customer2->company_name . ' in 7 days.',
+            'link' => route('inspections.index'),
+            'is_read' => false,
+        ]);
+
+        Notification::create([
+            'user_id' => $org1Tech->id,
+            'type' => 'inspection_reminder',
+            'title' => 'Inspection Reminder',
+            'message' => 'Don\'t forget about the quarterly inspection for ' . $customer2->company_name . ' scheduled for next week.',
+            'link' => route('inspections.index'),
+            'is_read' => false,
+        ]);
+
+        Notification::create([
+            'user_id' => $org1Admin->id,
+            'type' => 'system',
+            'title' => 'Welcome to Electric Inspect',
+            'message' => 'Your account has been successfully created. Start managing your inspections today!',
+            'link' => route('dashboard'),
+            'is_read' => true,
+            'read_at' => now()->subDays(1),
+        ]);
+
+        Notification::create([
+            'user_id' => $org2Admin->id,
+            'type' => 'inspection_reminder',
+            'title' => 'Inspection Completed',
+            'message' => 'The initial inspection for ' . $customer3->company_name . ' has been completed successfully.',
+            'link' => route('inspections.index'),
+            'is_read' => false,
         ]);
     }
 }

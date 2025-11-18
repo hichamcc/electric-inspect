@@ -20,30 +20,57 @@
                     </x-navlist.item>
                 </x-navlist.group>
 
-                <x-navlist.group :heading="__('Management')">
-                    @if(!auth()->user()->isTechnician())
-                    <x-navlist.item before="phosphor-users" :href="route('customers.index')" :current="request()->routeIs('customers.*')">
-                        {{ __('Customers') }}
-                    </x-navlist.item>
-                    @endif
-                    <x-navlist.item before="phosphor-wrench" :href="route('equipment.index')" :current="request()->routeIs('equipment.*')">
-                        {{ __('Equipment') }}
-                    </x-navlist.item>
-                    <x-navlist.item before="phosphor-clipboard-text" :href="route('inspections.index')" :current="request()->routeIs('inspections.*')">
-                        {{ __('Inspections') }}
-                    </x-navlist.item>
-                    @if(!auth()->user()->isTechnician())
-                    <x-navlist.item before="phosphor-user-list" :href="route('users.index')" :current="request()->routeIs('users.*')">
-                        {{ __('Team Members') }}
-                    </x-navlist.item>
-                    @endif
-                </x-navlist.group>
+                @if(auth()->user()->isSuperAdmin())
+                    <x-navlist.group :heading="__('Administration')">
+                        <x-navlist.item before="phosphor-building-office" :href="route('super-admin.organizations.index')" :current="request()->routeIs('super-admin.organizations.*')">
+                            {{ __('Organizations') }}
+                        </x-navlist.item>
+                    </x-navlist.group>
+                @else
+                    <x-navlist.group :heading="__('Management')">
+                        @if(!auth()->user()->isTechnician())
+                        <x-navlist.item before="phosphor-users" :href="route('customers.index')" :current="request()->routeIs('customers.*')">
+                            {{ __('Customers') }}
+                        </x-navlist.item>
+                        @endif
+                        <x-navlist.item before="phosphor-wrench" :href="route('equipment.index')" :current="request()->routeIs('equipment.index') || request()->routeIs('equipment.show') || request()->routeIs('equipment.edit') || request()->routeIs('equipment.create')">
+                            {{ __('Equipment') }}
+                        </x-navlist.item>
+                        @if(!auth()->user()->isTechnician())
+                        <x-navlist.item before="phosphor-stack" :href="route('equipment-types.index')" :current="request()->routeIs('equipment-types.*')">
+                            {{ __('Equipment Types') }}
+                        </x-navlist.item>
+                        @endif
+                        <x-navlist.item before="phosphor-clipboard-text" :href="route('inspections.index')" :current="request()->routeIs('inspections.index')">
+                            {{ __('Inspections') }}
+                        </x-navlist.item>
+                        <x-navlist.item before="phosphor-calendar" :href="route('inspections.calendar')" :current="request()->routeIs('inspections.calendar')">
+                            {{ __('Calendar') }}
+                        </x-navlist.item>
+                        @if(!auth()->user()->isTechnician())
+                        <x-navlist.item before="phosphor-user-list" :href="route('users.index')" :current="request()->routeIs('users.*')">
+                            {{ __('Team Members') }}
+                        </x-navlist.item>
+                        @endif
+                    </x-navlist.group>
+                @endif
             </x-navlist>
 
             <x-spacer />
 
             <x-navlist>
-                @if(!auth()->user()->isTechnician())
+                @if(!auth()->user()->isSuperAdmin())
+                <!-- Notifications Bell -->
+                <div class="relative px-3 py-2" id="notificationBell">
+                    <button type="button" class="relative flex items-center w-full rounded-lg p-2 hover:bg-gray-800/5 dark:hover:bg-white/10" onclick="toggleNotifications()">
+                        <x-phosphor-bell width="20" height="20" class="text-gray-600 dark:text-gray-300" />
+                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ __('Notifications') }}</span>
+                        <span id="notificationBadge" class="absolute top-1 left-7 hidden w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+                @endif
+
+                @if(!auth()->user()->isTechnician() && !auth()->user()->isSuperAdmin())
                 <x-navlist.item before="phosphor-building-office" :href="route('settings.organization.edit')" :current="request()->routeIs('settings.organization.*')">
                     {{ __('My Organization') }}
                 </x-navlist.item>
@@ -132,5 +159,38 @@
 
         {{ $slot }}
 
+        <!-- Notification System Script -->
+        @if(!auth()->user()->isSuperAdmin())
+        <script>
+            // Function to toggle notifications panel
+            function toggleNotifications() {
+                window.location.href = '{{ route('notifications.index') }}';
+            }
+
+            // Fetch unread notifications count
+            function updateNotificationBadge() {
+                fetch('{{ route('notifications.unread') }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        const badge = document.getElementById('notificationBadge');
+                        if (data.unreadCount > 0) {
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    })
+                    .catch(error => console.error('Error fetching notifications:', error));
+            }
+
+            // Update badge on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                updateNotificationBadge();
+                // Update every 60 seconds
+                setInterval(updateNotificationBadge, 60000);
+            });
+        </script>
+        @endif
+
+        @stack('scripts')
     </body>
 </html>

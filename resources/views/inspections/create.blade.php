@@ -8,9 +8,9 @@
         </div>
 
         <div class="max-w-3xl">
-            <x-heading>{{ __('Create Inspection') }}</x-heading>
+            <x-heading>{{ __('Schedule Inspection') }}</x-heading>
             <x-text class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('Record a new inspection') }}
+                {{ __('Schedule a new inspection. Parameters, results, and files will be added when performing the inspection.') }}
             </x-text>
 
             <div class="mt-6 bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-white/10 sm:rounded-xl">
@@ -49,20 +49,15 @@
 
                         <div>
                             <x-label for="equipment_id" value="{{ __('Equipment') }}" />
-                            <x-select id="equipment_id" name="equipment_id" class="mt-1 block w-full" required>
-                                <option value="">Select equipment</option>
-                                @foreach ($equipment as $item)
-                                    <option value="{{ $item->id }}" data-customer="{{ $item->customer_id }}" {{ old('equipment_id', request('equipment_id')) == $item->id ? 'selected' : '' }}>
-                                        {{ $item->equipment_type }} - {{ $item->customer->company_name }}
-                                    </option>
-                                @endforeach
+                            <x-select id="equipment_id" name="equipment_id" class="mt-1 block w-full" required disabled>
+                                <option value="">Select a customer first</option>
                             </x-select>
                             <x-error for='equipment_id' />
                         </div>
 
                         <div class="sm:col-span-2">
                             <x-label for="inspection_type" value="{{ __('Inspection Type') }}" />
-                            <x-input id="inspection_type" class="mt-1 block w-full" type="text" name="inspection_type" :value="old('inspection_type')" required placeholder="e.g., Annual Safety Inspection" />
+                            <x-input id="inspection_type" class="mt-1 block w-full" type="text" name="inspection_type" :value="old('inspection_type')" placeholder="e.g., Annual Safety Inspection" />
                             <x-error for='inspection_type' />
                         </div>
 
@@ -83,34 +78,31 @@
                             <x-select id="status" name="status" class="mt-1 block w-full" required>
                                 <option value="scheduled" {{ old('status', 'scheduled') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                                 <option value="in_progress" {{ old('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                                 <option value="cancelled" {{ old('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                             </x-select>
                             <x-error for='status' />
-                        </div>
-
-                        <div>
-                            <x-label for="result" value="{{ __('Result') }}" />
-                            <x-input id="result" class="mt-1 block w-full" type="text" name="result" :value="old('result')" required placeholder="e.g., Pass, Fail, Conditional" />
-                            <x-error for='result' />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('Mark as "In Progress" to fill parameters and results') }}</p>
                         </div>
                     </div>
-
-                    <x-separator />
 
                     <div>
                         <x-label for="notes" value="{{ __('Notes') }}" />
-                        <x-textarea id="notes" class="mt-1 block w-full" name="notes" rows="3">{{ old('notes') }}</x-textarea>
+                        <x-textarea id="notes" class="mt-1 block w-full" name="notes" rows="3" placeholder="Any special instructions or notes for this inspection...">{{ old('notes') }}</x-textarea>
                         <x-error for='notes' />
                     </div>
 
-                    <x-separator />
-
-                    <div>
-                        <x-label for="files" value="{{ __('Attach Files (PDF, Images)') }}" />
-                        <input id="files" type="file" name="files[]" multiple accept=".pdf,.jpg,.jpeg,.png" class="mt-1 block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md cursor-pointer bg-gray-50 dark:bg-gray-900 focus:outline-none">
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">PDF, JPG, PNG (Max 10MB per file)</p>
-                        <x-error for='files' />
+                    <!-- Parameters Info Section -->
+                    <div id="parameters-info" style="display: none;" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <x-phosphor-info width="20" height="20" class="text-blue-600 dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" />
+                            <div class="flex-1">
+                                <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-100">{{ __('Parameters to be filled during inspection') }}</h4>
+                                <p class="text-xs text-blue-800 dark:text-blue-200 mt-1">{{ __('The inspector will need to fill the following parameters on the day of inspection:') }}</p>
+                                <ul id="parameters-list" class="mt-2 space-y-1 text-xs text-blue-700 dark:text-blue-300">
+                                    <!-- Parameters will be inserted here by JavaScript -->
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-4">
@@ -118,11 +110,110 @@
                             {{ __('Cancel') }}
                         </a>
                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                            {{ __('Create Inspection') }}
+                            {{ __('Schedule Inspection') }}
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </x-container>
+
+    @push('scripts')
+    <script>
+        // Equipment data
+        const equipmentData = @json($equipmentData);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const customerSelect = document.getElementById('customer_id');
+            const equipmentSelect = document.getElementById('equipment_id');
+            const parametersInfo = document.getElementById('parameters-info');
+            const parametersList = document.getElementById('parameters-list');
+
+            // Handle customer selection
+            customerSelect.addEventListener('change', function() {
+                const customerId = this.value;
+
+                // Clear equipment dropdown
+                equipmentSelect.innerHTML = '<option value="">Select equipment</option>';
+
+                // Hide parameters info when customer changes
+                parametersInfo.style.display = 'none';
+                parametersList.innerHTML = '';
+
+                if (customerId) {
+                    // Filter equipment by selected customer
+                    const customerEquipment = Object.entries(equipmentData)
+                        .filter(([id, data]) => data.customer_id == customerId);
+
+                    if (customerEquipment.length > 0) {
+                        equipmentSelect.disabled = false;
+                        customerEquipment.forEach(([id, data]) => {
+                            const option = document.createElement('option');
+                            option.value = id;
+                            option.textContent = data.equipment_type;
+                            equipmentSelect.appendChild(option);
+                        });
+                    } else {
+                        equipmentSelect.disabled = true;
+                        equipmentSelect.innerHTML = '<option value="">No equipment available for this customer</option>';
+                    }
+                } else {
+                    equipmentSelect.disabled = true;
+                    equipmentSelect.innerHTML = '<option value="">Select a customer first</option>';
+                }
+            });
+
+            // Handle equipment selection - show parameters info
+            equipmentSelect.addEventListener('change', function() {
+                const equipmentId = this.value;
+
+                // Clear parameters list
+                parametersList.innerHTML = '';
+
+                if (equipmentId && equipmentData[equipmentId]) {
+                    const equipment = equipmentData[equipmentId];
+
+                    if (equipment.parameters && equipment.parameters.length > 0) {
+                        // Show parameters info section
+                        parametersInfo.style.display = 'block';
+
+                        // Add each parameter to the list
+                        equipment.parameters.forEach(param => {
+                            const li = document.createElement('li');
+                            li.className = 'flex items-center';
+                            li.innerHTML = `
+                                <svg class="w-3 h-3 mr-1.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>${param.label}</strong>${param.is_required ? ' <span class="text-red-500">*</span>' : ' (optional)'}</span>
+                            `;
+                            parametersList.appendChild(li);
+                        });
+                    } else {
+                        // Hide parameters info if no parameters
+                        parametersInfo.style.display = 'none';
+                    }
+                } else {
+                    // Hide parameters info if no equipment selected
+                    parametersInfo.style.display = 'none';
+                }
+            });
+
+            // Trigger change event on page load if customer is pre-selected
+            if (customerSelect.value) {
+                customerSelect.dispatchEvent(new Event('change'));
+
+                // If equipment is also pre-selected, select it after customer loads
+                const preSelectedEquipment = '{{ old("equipment_id", request("equipment_id")) }}';
+                if (preSelectedEquipment) {
+                    setTimeout(() => {
+                        equipmentSelect.value = preSelectedEquipment;
+                        // Trigger equipment change to show parameters info
+                        equipmentSelect.dispatchEvent(new Event('change'));
+                    }, 100);
+                }
+            }
+        });
+    </script>
+    @endpush
 </x-layouts.app>

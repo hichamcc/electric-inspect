@@ -114,8 +114,31 @@
                                             </a>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $inspection->inspection_date->format('M d, Y') }}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div class="text-gray-900 dark:text-gray-100">
+                                            {{ $inspection->inspection_date->format('M d, Y') }}
+                                            @if($inspection->inspection_time)
+                                                <span class="text-gray-500 dark:text-gray-400">{{ date('g:i A', strtotime($inspection->inspection_time)) }}</span>
+                                            @endif
+                                        </div>
+                                        @if(!in_array($inspection->status, ['completed', 'cancelled']))
+                                        <div class="text-xs mt-0.5
+                                            @if($inspection->inspection_date->isPast() && !$inspection->inspection_date->isToday())
+                                                text-red-600 dark:text-red-400
+                                            @elseif($inspection->inspection_date->isToday())
+                                                text-blue-600 dark:text-blue-400 font-semibold
+                                            @else
+                                                text-gray-500 dark:text-gray-400
+                                            @endif">
+                                            @if($inspection->inspection_date->isPast() && !$inspection->inspection_date->isToday())
+                                                Overdue ({{ $inspection->inspection_date->diffForHumans() }})
+                                            @elseif($inspection->inspection_date->isToday())
+                                                Due today
+                                            @else
+                                                Due {{ $inspection->inspection_date->diffForHumans() }}
+                                            @endif
+                                        </div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         {{ $inspection->result }}
@@ -133,12 +156,19 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <a href="{{ route('inspections.show', $inspection) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">View</a>
                                         <a href="{{ route('inspections.export.pdf', $inspection) }}" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3" title="Export PDF">PDF</a>
-                                        <a href="{{ route('inspections.edit', $inspection) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Edit</a>
-                                        <form action="{{ route('inspections.destroy', $inspection) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this inspection?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-                                        </form>
+
+                                        @if(auth()->user()->isTechnician())
+                                            @if(in_array($inspection->status, ['scheduled', 'in_progress']))
+                                                <a href="{{ route('inspections.edit', $inspection) }}" class="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300 mr-3">Submit</a>
+                                            @endif
+                                        @else
+                                            <a href="{{ route('inspections.edit', $inspection) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Edit</a>
+                                            <form action="{{ route('inspections.destroy', $inspection) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this inspection?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty

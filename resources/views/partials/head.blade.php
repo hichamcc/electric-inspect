@@ -39,3 +39,5 @@
     }
     window.setAppearance(window.localStorage.getItem('appearance') || 'system')
 </script>
+
+@stack('styles')

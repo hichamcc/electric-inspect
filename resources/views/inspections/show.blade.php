@@ -111,6 +111,24 @@
                     </div>
                 </div>
 
+                @if ($inspection->parameterValues->count() > 0)
+                    <div class="bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-white/10 sm:rounded-xl">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100 mb-4">
+                                {{ __('Equipment Parameters') }}
+                            </h3>
+                            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+                                @foreach ($inspection->parameterValues as $value)
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $value->parameter->label }}</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $value->value ?: '-' }}</dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                        </div>
+                    </div>
+                @endif
+
                 @if ($inspection->notes)
                     <div class="bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-900/5 dark:ring-white/10 sm:rounded-xl">
                         <div class="px-4 py-5 sm:p-6">

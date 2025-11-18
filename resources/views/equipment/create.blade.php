@@ -33,11 +33,41 @@
                     <x-separator />
 
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        @if($equipmentTypes->count() > 0)
                         <div class="sm:col-span-2">
-                            <x-label for="equipment_type" value="{{ __('Equipment Type') }}" />
-                            <x-input id="equipment_type" class="mt-1 block w-full" type="text" name="equipment_type" :value="old('equipment_type')" required />
-                            <x-error for='equipment_type' />
+                            <div class="flex justify-between items-center mb-1">
+                                <x-label for="equipment_type_id" value="{{ __('Equipment Type') }}" />
+                                <a href="{{ route('equipment-types.create') }}" class="text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                                    + {{ __('Add New Type') }}
+                                </a>
+                            </div>
+                            <x-select id="equipment_type_id" name="equipment_type_id" class="mt-1 block w-full" required>
+                                <option value="">{{ __('Select equipment type') }}</option>
+                                @foreach ($equipmentTypes as $type)
+                                    <option value="{{ $type->id }}" data-name="{{ $type->name }}" {{ old('equipment_type_id') == $type->id ? 'selected' : '' }}>
+                                        {{ $type->name }}
+                                    </option>
+                                @endforeach
+                            </x-select>
+                            <x-error for='equipment_type_id' />
                         </div>
+
+                        <input type="hidden" id="equipment_type" name="equipment_type" value="{{ old('equipment_type') }}" />
+                        @else
+                        <div class="sm:col-span-2">
+                            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                <div class="flex">
+                                    <x-phosphor-warning width="20" height="20" class="text-yellow-600 dark:text-yellow-400 mr-2" />
+                                    <div>
+                                        <p class="text-sm text-yellow-800 dark:text-yellow-200">{{ __('No equipment types available') }}</p>
+                                        <p class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                                            <a href="{{ route('equipment-types.create') }}" class="font-semibold underline">{{ __('Create an equipment type') }}</a> {{ __('to get started') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                         <div>
                             <x-label for="manufacturer" value="{{ __('Manufacturer') }}" />
@@ -105,4 +135,26 @@
             </div>
         </div>
     </x-container>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const equipmentTypeSelect = document.getElementById('equipment_type_id');
+            const equipmentTypeInput = document.getElementById('equipment_type');
+
+            if (equipmentTypeSelect && equipmentTypeInput) {
+                equipmentTypeSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const typeName = selectedOption.getAttribute('data-name') || '';
+                    equipmentTypeInput.value = typeName;
+                });
+
+                // Trigger on page load if a type is already selected
+                if (equipmentTypeSelect.value) {
+                    equipmentTypeSelect.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    </script>
+    @endpush
 </x-layouts.app>

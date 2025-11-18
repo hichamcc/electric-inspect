@@ -14,6 +14,7 @@ class Equipment extends Model
     protected $fillable = [
         'organization_id',
         'customer_id',
+        'equipment_type_id',
         'equipment_type',
         'manufacturer',
         'model',
@@ -43,6 +44,14 @@ class Equipment extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Get the equipment type.
+     */
+    public function equipmentType(): BelongsTo
+    {
+        return $this->belongsTo(EquipmentType::class);
     }
 
     /**

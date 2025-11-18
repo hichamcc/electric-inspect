@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Equipment;
+use App\Models\EquipmentType;
 use Illuminate\Http\Request;
 
 class EquipmentController extends Controller
@@ -48,7 +49,10 @@ class EquipmentController extends Controller
     public function create()
     {
         $customers = Customer::orderBy('company_name')->get();
-        return view('equipment.create', compact('customers'));
+        $equipmentTypes = EquipmentType::where('organization_id', auth()->user()->organization_id)
+            ->orderBy('name')
+            ->get();
+        return view('equipment.create', compact('customers', 'equipmentTypes'));
     }
 
     /**
@@ -58,6 +62,7 @@ class EquipmentController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
+            'equipment_type_id' => 'required|exists:equipment_types,id',
             'equipment_type' => 'required|string|max:255',
             'manufacturer' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
@@ -93,7 +98,10 @@ class EquipmentController extends Controller
     public function edit(Equipment $equipment)
     {
         $customers = Customer::orderBy('company_name')->get();
-        return view('equipment.edit', compact('equipment', 'customers'));
+        $equipmentTypes = EquipmentType::where('organization_id', auth()->user()->organization_id)
+            ->orderBy('name')
+            ->get();
+        return view('equipment.edit', compact('equipment', 'customers', 'equipmentTypes'));
     }
 
     /**
@@ -103,6 +111,7 @@ class EquipmentController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
+            'equipment_type_id' => 'required|exists:equipment_types,id',
             'equipment_type' => 'required|string|max:255',
             'manufacturer' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
